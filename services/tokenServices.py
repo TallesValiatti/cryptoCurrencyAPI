@@ -14,7 +14,7 @@ class TokenServices(object):
 
     @staticmethod
     def GenerateToken():
-        token = jwt.encode({'username':  TokenServices.user,'exp': datetime.datetime.now() + datetime.timedelta(minutes=181) },TokenServices.key)
+        token = jwt.encode({'username':  TokenServices.user,'exp': datetime.datetime.now() + datetime.timedelta(days=5) },TokenServices.key)
         return jsonify({'message': 'Validated successfully', 'token': token.decode('UTF-8'),
                         'exp': datetime.datetime.now() + datetime.timedelta(hours=12)})
 
