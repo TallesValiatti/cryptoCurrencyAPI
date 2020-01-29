@@ -4,27 +4,53 @@ import datetime
 from flask import jsonify
 from functools import wraps
 from flask import request
+import functools
+from tensorflow.keras import layers
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
 
 class DataServices(object):
 
     #private token
+    dataLen = 11
     
     @staticmethod
     def validateData(data):
-        if(len(data) != 8):
+        if(len(data) != DataServices.dataLen):
             return False
         if not all(isinstance(x, float) for x in data):
             return False
         return True
-            
+
+    @staticmethod
+    def normalize(x):
+        x1 = []
+        for i in range(len(x)):
+            item = x[i]
+            mean = np.mean(item)
+            #print(mean)
+            std = np.std(item)
+        # print(std)
+            item = (item - mean)/std
+        # print(item)
+            x1.append(item)
+        return np.array(x1)
     @staticmethod
     def predict(data):
-        data = [data]
+        data=[data]
+                
+        #load model
+        model = tf.keras.models.load_model('./model_tensorflow.h5')
+        
+        #nomalize data
+        data = DataServices.normalize(data)
         print(data)
-
-        return True
+        result = model.predict(data)
+        result = int(np.round(result))
+        return True if (result == 1) else False
     """
-   using System;
+  using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,7 +86,7 @@ namespace estudosGerais
 
         public static bool predict(string token)
         {
-            var data = new List<double>() { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+            var data = new List<double>() { 1080.0, 1100.0, 1000.1, 1000.0, 1010.0, 1000.1, 1000.0, 1090.0, 1105.1, 1140.0, 1140.0 };
 
             HttpClient req = new HttpClient();
             var body = new
@@ -69,19 +95,20 @@ namespace estudosGerais
             };
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(body), System.Text.Encoding.UTF8, "application/json");
-            var task = req.PostAsync("http://127.0.0.1:5000/predict?token=" + token, content);
-            task.Wait();
+            var taskPost = req.PostAsync("http://127.0.0.1:5000/predict?token=" + token, content);
+            taskPost.Wait();
 
-            var result = task.Result;
+            var result = taskPost.Result;
 
             result.EnsureSuccessStatusCode();
 
-            var task2 = result.Content.ReadAsStringAsync();
+            var taskRead = result.Content.ReadAsStringAsync();
 
-            task2.Wait();
+            taskRead.Wait();
 
-            var contentBody = JsonConvert.DeserializeObject<returnPredict>(task2.Result);
-
+            var contentBody = JsonConvert.DeserializeObject<returnPredict>(taskRead.Result);
+            
+            Console.WriteLine(contentBody.result);
             return contentBody.result;
         }
         public static string auth()
@@ -93,17 +120,17 @@ namespace estudosGerais
                 password = "123"
             };
             HttpContent content = new StringContent(JsonConvert.SerializeObject(body), System.Text.Encoding.UTF8, "application/json");
-            var task = req.PostAsync("http://127.0.0.1:5000/auth", content);
-            task.Wait();
+            var taskPost = req.PostAsync("http://127.0.0.1:5000/auth", content);
+            taskPost.Wait();
 
-            var result = task.Result;
+            var result = taskPost.Result;
 
             result.EnsureSuccessStatusCode();
 
-            var task2 = result.Content.ReadAsStringAsync();
-            task2.Wait();
+            var taskRead = result.Content.ReadAsStringAsync();
+            taskRead.Wait();
 
-            var contentBody = JsonConvert.DeserializeObject<returnAuth>(task2.Result);
+            var contentBody = JsonConvert.DeserializeObject<returnAuth>(taskRead.Result);
 
             return contentBody.token;
         }
