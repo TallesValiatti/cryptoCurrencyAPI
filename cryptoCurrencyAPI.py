@@ -28,6 +28,7 @@ def auth():
     try:
         #get request data
         req_data = request.get_json()
+        print(req_data)
         
         #auth
         if(TokenServices.auth(req_data["user"], req_data["password"]) is False):
